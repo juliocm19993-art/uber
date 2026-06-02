@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle Uber e 99</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <nav class="nav-tabs">
+      <button class="tab-btn active" type="button" id="btnPaginaControle" onclick="mostrarPagina('controle')">Controle diário</button>
+      <button class="tab-btn" type="button" id="btnPaginaSemana" onclick="mostrarPagina('semana')">Buscar semana</button>
+      <button class="tab-btn" type="button" id="btnPaginaMes" onclick="mostrarPagina('mes')">Resumo mensal</button>
+      <button class="tab-btn" type="button" id="btnPaginaCustos" onclick="mostrarPagina('custos')">Custos do veículo</button>
+    </nav>
+    <div class="card" style="padding:10px 14px;font-size:12px;color:#93c5fd">Banco: <strong id="statusBanco">Carregando...</strong></div>
+  </div>
+
+  <section id="paginaControle" class="page active">
+    <section class="card" style="margin-bottom:20px">
+      <div class="section-title"><h2>Meta mensal</h2></div>
+      <div class="form-grid">
+        <div><label for="metaSemanal">Meta de faturamento bruto do mês</label><input type="text" id="metaSemanal" value="2.500,00" inputmode="decimal"></div>
+        <div style="display:flex;align-items:end"><button class="secondary" type="button" onclick="salvarMetaManual()">Salvar meta</button></div>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="barraMetaSemanal"></div></div>
+      <div class="meta-grid">
+        <div class="week-box card-info"><span>Meta mensal</span><strong class="value-info" id="metaInteligenteValor">R$ 0,00</strong></div>
+        <div class="week-box"><span>Feito no mês</span><strong id="feitoSemana">R$ 0,00</strong></div>
+        <div class="week-box"><span>Falta para meta</span><strong id="faltaSemana">R$ 0,00</strong></div>
+        <div class="week-box"><span>Progresso</span><strong id="progressoSemana">0%</strong></div>
+        <div class="week-box"><span>Dias salvos</span><strong id="diasSemana">0</strong></div>
+        <div class="week-box"><span>Dias restantes no mês</span><strong id="diasRestantesSemana">0</strong></div>
+        <div class="week-box"><span>Precisa por dia restante</span><strong id="precisaPorDiaSemana">R$ 0,00</strong></div>
+        <div class="week-box"><span>Status da meta</span><strong id="statusMetaSemana">-</strong></div>
+      </div>
+    </section>
+
+    <main class="main-grid">
+      <section class="card">
+        <div class="section-title"><h2>Lançamento diário</h2></div>
+        <div class="timer-box">
+          <span>Temporizador de trabalho</span>
+          <div class="timer-display" id="timerDisplay">00:00:00</div>
+          <div class="timer-status" id="timerStatus">Dia ainda não iniciado</div>
+          <div class="timer-actions">
+            <button class="success" type="button" onclick="iniciarTimer()">Iniciar dia</button>
+            <button class="warning" type="button" onclick="pausarTimer()">Pausar</button>
+            <button class="secondary" type="button" onclick="continuarTimer()">Continuar</button>
+            <button class="danger" type="button" onclick="zerarTimer()">Zerar</button>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div><label>Data</label><input type="date" id="data"></div>
+          <div><label>Ganhos Uber</label><input type="text" id="uber" placeholder="0,00" inputmode="decimal"></div>
+          <div><label>Ganhos 99</label><input type="text" id="app99" placeholder="0,00" inputmode="decimal"></div>
+          <div><label>Outros ganhos</label><input type="text" id="outros" placeholder="0,00" inputmode="decimal"></div>
+          <div><label>KM rodado</label><input type="text" id="km" placeholder="0" inputmode="decimal"></div>
+          <div><label>Horas trabalhadas</label><input type="text" id="horas" placeholder="00:00:00" inputmode="numeric"></div>
+          <div><label>Combustível + pneus + manutenção</label><input type="text" id="combustivel" placeholder="0,00" readonly></div>
+          <div><label>Custos fixos do dia</label><input type="text" id="manutencao" placeholder="0,00" readonly></div>
+          <div><label>Lavagem / estacionamento</label><input type="text" id="extras" placeholder="0,00" inputmode="decimal"></div>
+        </div>
+        <div class="actions" style="margin-top:16px">
+          <button class="primary" type="button" onclick="salvarRegistro(false)">Salvar parcial</button>
+          <button class="success" type="button" onclick="fecharDia()">Fechar dia</button>
+          <button class="secondary" type="button" onclick="limparFormulario()">Limpar campos</button>
+          <button class="danger" type="button" onclick="apagarTudo()">Apagar tudo</button>
+        </div>
+        <div class="hint">O resumo inteligente só atualiza depois de Salvar parcial ou Fechar dia. A meta mensal usa o campo Dias trabalhados no mês em Custos do veículo.</div>
+      </section>
+      <aside class="card">
+        <div class="section-title"><h2>Resumo inteligente</h2></div>
+        <div class="summary-list">
+          <div class="summary-item card-info"><span>Valor Total Bruto</span><strong class="value-info" id="valorTotalBrutoResumo">R$ 0,00</strong></div>
+          <div class="summary-item card-profit"><span>Ganhos/H</span><strong class="value-positive" id="lucroHora">R$ 0,00</strong></div>
+          <div class="summary-item card-warning"><span>Ganhos/KM</span><strong class="value-warning" id="ganhoKmResumo">R$ 0,00</strong></div>
+        </div>
+      </aside>
+    </main>
+    <section class="card"><div class="section-title"><h2>Histórico de lançamentos</h2><button class="secondary" type="button" onclick="exportarCSV()">Exportar CSV</button></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Uber</th><th>99</th><th>Faturamento</th><th>Gastos</th><th>Lucro</th><th>KM</th><th>Horas</th><th>Ganhos/KM</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tabela"></tbody></table></div></section>
+  </section>
+
+  <section id="paginaSemana" class="page">
+    <section class="card" style="margin-bottom:18px"><div class="section-title"><h2>Buscar semana</h2></div><div class="form-grid"><div><label>Início da semana</label><input type="date" id="semanaInicio"></div><div><label>Final da semana</label><input type="date" id="semanaFim"></div><div style="display:flex;align-items:end;gap:10px"><button class="primary" type="button" onclick="buscarSemana()">Buscar semana</button><button class="secondary" type="button" onclick="preencherSemanaAtual();buscarSemana();">Semana atual</button></div></div></section>
+    <section class="card" style="margin-bottom:18px">
+      <div class="section-title"><h2>Resumo semanal</h2></div>
+      <div class="week-section"><div class="week-section-title">Meta da semana</div><div class="week-grid"><div class="week-box card-info"><span>Meta definida</span><strong class="value-info" id="semanaMeta">R$ 0,00</strong></div></div></div>
+      <div class="week-divider"></div>
+      <div class="week-section"><div class="week-section-title">Ganhos e resultado</div><div class="week-grid"><div class="week-box card-info week-highlight"><span>Valor bruto</span><strong class="value-info big-number" id="semanaBruto">R$ 0,00</strong></div><div class="week-box card-profit week-highlight"><span style="color:#86efac">Valor líquido</span><strong class="value-positive big-number" id="semanaLucro">R$ 0,00</strong></div></div></div>
+      <div class="week-divider"></div>
+      <div class="week-section"><div class="week-section-title">Custos</div><div class="week-grid"><div class="week-box card-danger"><span style="color:#fca5a5">Gastos totais</span><strong class="value-danger" id="semanaGastos">R$ 0,00</strong></div></div></div>
+      <div class="week-divider"></div>
+      <div class="week-section"><div class="week-section-title">Operação</div><div class="week-grid"><div class="week-box"><span>Dias trabalhados</span><strong id="semanaDias">0</strong></div><div class="week-box"><span>KM total</span><strong id="semanaKm">0 km</strong></div><div class="week-box"><span>Horas totais</span><strong id="semanaHoras">00:00:00</strong></div></div></div>
+      <div class="week-divider"></div>
+      <div class="week-section"><div class="week-section-title">Eficiência</div><div class="week-grid"><div class="week-box card-profit"><span style="color:#86efac">Ganhos Hora</span><strong class="value-positive" id="semanaGanhoHora">R$ 0,00</strong></div><div class="week-box card-warning"><span style="color:#fde68a">Ganhos KM</span><strong class="value-warning" id="semanaGanhoKm">R$ 0,00</strong></div></div></div>
+    </section>
+    <section class="card"><div class="section-title"><h2>Lançamentos da semana</h2></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Uber</th><th>99</th><th>Faturamento</th><th>Gastos</th><th>Lucro</th><th>KM</th><th>Horas</th><th>Ganhos/KM</th></tr></thead><tbody id="tabelaSemana"></tbody></table></div></section>
+  </section>
+
+  <section id="paginaMes" class="page">
+    <section class="card" style="margin-bottom:18px"><div class="section-title"><h2>Resumo mensal</h2></div><div class="form-grid"><div><label>Mês</label><input type="month" id="mesBusca"></div><div><label>Dias trabalhados planejados no mês</label><input type="text" id="diasTrabalhadosMesResumo" value="22" readonly></div><div style="display:flex;align-items:end;gap:10px"><button class="primary" type="button" onclick="buscarMes()">Buscar mês</button><button class="secondary" type="button" onclick="preencherMesAtual();buscarMes();">Mês atual</button></div></div></section>
+    <section class="card" style="margin-bottom:18px">
+      <div class="section-title"><h2>Resumo do mês selecionado</h2></div>
+      <div class="week-section"><div class="week-section-title">Meta mensal automática</div><div class="week-grid"><div class="week-box card-info"><span>Meta mensal</span><strong class="value-info" id="mesMeta">R$ 0,00</strong></div><div class="week-box"><span>Falta para meta</span><strong id="mesFaltaMeta">R$ 0,00</strong></div><div class="week-box"><span>Progresso da meta</span><strong id="mesProgressoMeta">0%</strong></div><div class="week-box card-warning"><span style="color:#fde68a">Precisa por dia</span><strong class="value-warning" id="mesPrecisaPorDia">R$ 0,00</strong></div></div></div>
+      <div class="week-divider"></div>
+      <div class="week-section"><div class="week-section-title">Ganhos e resultado</div><div class="week-grid"><div class="week-box card-info"><span>Valor bruto</span><strong class="value-info" id="mesBruto">R$ 0,00</strong></div><div class="week-box card-profit"><span style="color:#86efac">Valor líquido</span><strong class="value-positive" id="mesLucro">R$ 0,00</strong></div><div class="week-box card-danger"><span style="color:#fca5a5">Gastos totais</span><strong class="value-danger" id="mesGastos">R$ 0,00</strong></div></div></div>
+      <div class="week-divider"></div>
+      <div class="week-section"><div class="week-section-title">Operação</div><div class="week-grid"><div class="week-box"><span>Dias trabalhados</span><strong id="mesDias">0</strong></div><div class="week-box"><span>KM total</span><strong id="mesKm">0 km</strong></div><div class="week-box"><span>Horas totais</span><strong id="mesHoras">00:00:00</strong></div></div></div>
+      <div class="week-divider"></div>
+      <div class="week-section"><div class="week-section-title">Eficiência</div><div class="week-grid"><div class="week-box card-profit"><span style="color:#86efac">Ganhos Hora</span><strong class="value-positive" id="mesGanhoHora">R$ 0,00</strong></div><div class="week-box card-warning"><span style="color:#fde68a">Ganhos KM</span><strong class="value-warning" id="mesGanhoKm">R$ 0,00</strong></div><div class="week-box card-warning"><span style="color:#fde68a">Média por dia</span><strong class="value-warning" id="mesMediaDia">R$ 0,00</strong></div></div></div>
+    </section>
+    <section class="card"><div class="section-title"><h2>Lançamentos do mês</h2></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Uber</th><th>99</th><th>Faturamento</th><th>Gastos</th><th>Lucro</th><th>KM</th><th>Horas</th><th>Ação</th></tr></thead><tbody id="tabelaMes"></tbody></table></div></section>
+  </section>
+
+  <section id="paginaCustos" class="page"><section class="card"><div class="section-title"><h2>Custos automáticos do veículo</h2><button class="primary" type="button" onclick="salvarCustosVeiculo(true)">Salvar custos</button></div><div class="form-grid"><div><label>Consumo do carro (km/l)</label><input type="text" id="consumoKm" value="40" inputmode="decimal"></div><div><label>Preço combustível</label><input type="text" id="precoCombustivel" value="6,40" inputmode="decimal"></div><div><label>Dias trabalhados no mês</label><input type="text" id="diasTrabalhadosMes" value="22" inputmode="numeric"></div><div><label>Manutenção valor</label><input type="text" id="manutencaoValor" value="2.100,00" inputmode="decimal"></div><div><label>Manutenção a cada KM</label><input type="text" id="manutencaoKm" value="36.000" inputmode="numeric"></div><div><label>Pneus valor</label><input type="text" id="pneuValor" value="2.100,00" inputmode="decimal"></div><div><label>Troca pneus a cada KM</label><input type="text" id="pneuKm" value="50.000" inputmode="numeric"></div><div><label>IPVA mensal</label><input type="text" id="ipvaMensal" value="585,00" inputmode="decimal"></div><div><label>Seguro mensal</label><input type="text" id="seguroMensal" value="600,00" inputmode="decimal"></div><div><label>Financiamento mensal</label><input type="text" id="financiamentoMensal" value="3.500,00" inputmode="decimal"></div></div><div class="hint">O campo dias trabalhados no mês divide IPVA, seguro e financiamento. Ele também calcula a meta mensal automática com base na meta semanal.</div></section></section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
